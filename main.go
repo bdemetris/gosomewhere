@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
-
-	"github.com/BurntSushi/toml"
 )
 
 func main() {
@@ -33,14 +33,11 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func query(city string) (weatherData, error) {
+	apikey := LoadConfig("./config.json")
 
-	var config keys
+	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", apikey.Key, city)
 
-	if _, err := toml.DecodeFile("config.toml", &config); err != nil {
-		return
-	}
-
-	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=ebb6c3a404230a81e1ccc19a3095a6cc&q=" + city)
+	resp, err := http.Get(url)
 	if err != nil {
 		return weatherData{}, err
 	}
@@ -56,6 +53,21 @@ func query(city string) (weatherData, error) {
 	return d, nil
 }
 
+func LoadConfig(path string) Configuration {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal("Config File Missing. ", err)
+	}
+
+	var config Configuration
+	err = json.Unmarshal(file, &config)
+	if err != nil {
+		log.Fatal("Config Parse Error: ", err)
+	}
+
+	return config
+}
+
 type weatherData struct {
 	Name string `json:"name"`
 	Main struct {
@@ -63,6 +75,6 @@ type weatherData struct {
 	} `json:"main"`
 }
 
-type keys struct {
+type Configuration struct {
 	Key string
 }
