@@ -6,7 +6,7 @@ import (
   "fmt"
 )
 
-func Query(city string) (weatherData, error) {
+func QueryWeather(city string) (weatherData, error) {
 	apikey := LoadConfig("./weatherdata/config.json")
 
 	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", apikey.Key, city)
